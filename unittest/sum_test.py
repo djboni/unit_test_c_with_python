@@ -4,7 +4,7 @@ import unittest
 
 class SumTest(unittest.TestCase):
   def setUp(self):
-    self.module, self.ffi = load('sum')
+    self.module, self.ffi = load('sum.c', avoid_cache=True)
   
   def test_zero(self):
     self.assertEqual(self.module.sum(0), 0)

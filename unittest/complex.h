@@ -1,3 +1,3 @@
 #include "types.h"
 
-complex add(complex a, complex b);
+complex add_complex(complex a, complex b);
