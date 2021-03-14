@@ -1,7 +1,8 @@
 #!/usr/bin/python3
-# Alexander Steffen - Writing unit tests for C code in Python
-# https://www.youtube.com/watch?v=zW_HyDTPjO0
-
+# Unit-Test C with Python:
+# https://github.com/djboni/unit-test-c-with-python
+#
+# Stuff you need to install:
 # sudo apt install gcc python3 python3-cffi python3-pycparser
 
 import cffi, importlib, pycparser.c_generator
@@ -30,8 +31,7 @@ class HeaderGenerator(pycparser.c_generator.CGenerator):
       if n.name in self.functions:
         # Is already in functions
         return result
-      elif re.search(re.escape(result).replace('\\ ', '\\s*'),
-              self.source_content) != None:
+      elif re.search(re.escape(result).replace('\\*', '\\*\\s*').replace('\\ ', '\\s*'), self.source_content) != None:
         # Is declared in source content
         return result
       else:
@@ -56,11 +56,11 @@ module_name: sets the module name (and names of created files).
 
 avoid_cache=True: makes random names to allow testing code with global variables.
 """
-  #
+  # Avoid caching using random name to module
   if avoid_cache:
     module_name += uuid.uuid4().hex + '_'
 
-  #
+  # Create a list if just one souce file in a string
   if type(source_files) == str:
     source_files = [source_files,]
   
@@ -75,9 +75,10 @@ avoid_cache=True: makes random names to allow testing code with global variables
   source_content = '\n'.join(source_content)
   
   # Collect include files
+  # TODO Remove inclusions inside comments
   header_content = ''.join(re.findall('\s*#include\s+.*', source_content))
   
-  # Remove unknowns to cffi
+  # Remove unknowns to CFFI
   header_content = Remove_Unknowns + remove_unknowns + header_content
   
   # Preprocess include files
@@ -105,7 +106,7 @@ avoid_cache=True: makes random names to allow testing code with global variables
     source_content = source_content.replace('void main(', 'void mpmain(')
     header_content += '\nvoid mpmain(void argc, char **argv);\n'
   
-  # Run cffi
+  # Run CFFI
   ffibuilder = cffi.FFI()
   ffibuilder.cdef(header_content)
   include_dirs = [x.replace('-I', '') for x in include_paths]
