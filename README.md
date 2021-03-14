@@ -233,6 +233,7 @@ Other useful presentations:
 * [ATF](https://github.com/jmmv/atf) and [Kyua](https://github.com/jmmv/kyua/)
 * [Acutest](https://github.com/mity/acutest)
 * [C++ Boost.Test](https://www.boost.org/doc/libs/1_75_0/libs/test/doc/html/index.html)
+* [Headlock - Python/C Bridge for Unittesting](https://pypi.org/project/headlock/)
 * [Python unittest](https://docs.python.org/3/library/unittest.html)
 
 ### Code coverage tools
@@ -244,4 +245,5 @@ Other useful presentations:
 ## TODO
 
 * Is there a way to use Gcov to test statement or branch coverage when testing C code with Python?
+* Is there a way to access macros from the files?
 

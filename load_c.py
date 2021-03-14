@@ -131,3 +131,29 @@ class HeaderGenerator(pycparser.c_generator.CGenerator):
     self.functions.add(n.decl.name)
     return ''
 
+class Mocks:
+  """\
+Define 'extern "Pyton+C"' function as a mock object.
+
+from load_c import load, Mocks
+module, ffi = load('gpio.c')
+
+# Create mocks
+Mocks.CreateMock(ffi, 'read_gpio0', return_value=42)
+Mocks.CreateMock(ffi, 'read_gpio1', return_value=21)
+
+# Reset mocks [Useful in setUp()]
+Mocks.ResetMocks()
+"""
+  def CreateMock(ffi, name, *args, **kwargs):
+    import unittest.mock
+    mock = unittest.mock.Mock(*args, **kwargs)
+    setattr(Mocks, name, mock)
+    ffi.def_extern(name)(mock)
+  def ResetMocks():
+    import unittest.mock
+    for name in dir(Mocks):
+      obj = getattr(Mocks, name)
+      if isinstance(obj, unittest.mock.Mock):
+        obj.call_count = 0
+
