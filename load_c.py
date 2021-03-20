@@ -44,7 +44,9 @@ avoid_cache=True: makes random names to allow testing code with global variables
 
   # Collect include files
   # TODO Remove inclusions inside comments
-  header_content = ''.join(re.findall('\s*#include\s+.*', source_content))
+  header_content = ''.join(x[0] for x in re.findall(
+      r'(\s*\#\s*(include\s|if(n?def)?\s|else|endif)[^\n\r]*)',
+      source_content))
 
   # Preprocess include files
   header_content = Remove_Unknowns + remove_unknowns + header_content
@@ -68,8 +70,17 @@ avoid_cache=True: makes random names to allow testing code with global variables
     source_content = source_content.replace('void main(', 'void mpmain(')
     header_content += '\nvoid mpmain(void argc, char **argv);\n'
 
-  # Prepend 'extern "Python+C" ' to functions declarations with no definitions 
-  ast_header = pycparser.CParser().parse(header_content)
+  # Prepend 'extern "Python+C" ' to functions declarations with no definitions
+  try:
+    ast_header = pycparser.CParser().parse(header_content)
+  except:
+    print()
+    print(80 * '-')
+    print('HEADER:')
+    print(header_content)
+    print(80 * '-')
+    print()
+    raise
   header_generator = HeaderGenerator()
   header_generator.set_SourceContent(source_content)
   header_content = header_generator.visit(ast_header)
@@ -95,8 +106,17 @@ avoid_cache=True: makes random names to allow testing code with global variables
   return module.lib, module.ffi
 
 def preprocess(source, include_paths, compiler_options):
-  command = ['gcc', *compiler_options, *include_paths, '-E', '-P', '-']
-  return subprocess.check_output(command, input=source, universal_newlines=True)
+  try:
+    command = ['gcc', *compiler_options, *include_paths, '-E', '-P', '-']
+    return subprocess.check_output(command, input=source, universal_newlines=True)
+  except:
+    print()
+    print(80 * '-')
+    print('SOURCE/HEADER:')
+    print(source)
+    print(80 * '-')
+    print()
+    raise
 
 class HeaderGenerator(pycparser.c_generator.CGenerator):
   def __init__(self, *args, **kwargs):
