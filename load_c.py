@@ -66,7 +66,7 @@ en_sanitize_address=True: enables address sanitizer (not working).
   # Collect include files
   # TODO Remove inclusions inside comments
   header_content = ''.join(x[0] for x in re.findall(
-      r'(\s*\#\s*(include\s|if(n?def)?\s|else|endif)[^\n\r]*)',
+      r'(\s*\#\s*(include\s|define\s|undef\s|if(n?def)?\s|else|endif|error|warning)[^\n\r\\]*((\\\n|\\\r|\\\n\r|\\\r\n)[^\n\r\\]*)*)',
       source_content))
 
   # Preprocess include files
@@ -90,6 +90,8 @@ en_sanitize_address=True: enables address sanitizer (not working).
     # TODO REGEX
     source_content = source_content.replace('void main(', 'void mpmain(')
     header_content += '\nvoid mpmain(void argc, char **argv);\n'
+
+  # TODO Compile only if source_content is different than module_name.c
 
   # Prepend 'extern "Python+C" ' to functions declarations with no definitions
   try:
