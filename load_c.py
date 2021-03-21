@@ -28,7 +28,7 @@ Remove_Unknowns = """\
 #define __restrict
 """
 
-def load(source_files, include_paths=[], compiler_options=[], remove_unknowns='', module_name='pysim_', avoid_cache=False):
+def load(source_files, include_paths=[], compiler_options=[], remove_unknowns='', module_name='pysim_', avoid_cache=False, en_code_coverage=False, en_sanitize_undefined=False, en_sanitize_address=False):
   """Load a C file into Python as a module.
 
 source_files:     ['file1.c', file2.c'] or just 'file1.c'
@@ -38,6 +38,12 @@ compiler_options: ['-std=c90', '-O0', '-Wall', '-Wextra']
 module_name: sets the module name (and names of created files).
 
 avoid_cache=True: makes random names to allow testing code with global variables.
+
+en_code_coverage=True: enables Gcov code coverage.
+
+en_sanitize_undefined=True: enables undefined behavior sanitizer.
+
+en_sanitize_address=True: enables address sanitizer (not working).
 """
   # Avoid caching using random name to module
   if avoid_cache:
@@ -88,6 +94,9 @@ avoid_cache=True: makes random names to allow testing code with global variables
   # Prepend 'extern "Python+C" ' to functions declarations with no definitions
   try:
     ast_header = pycparser.CParser().parse(header_content)
+    header_generator = HeaderGenerator()
+    header_generator.set_SourceContent(source_content)
+    header_content = header_generator.visit(ast_header)
   except:
     print()
     print(80 * '-')
@@ -96,22 +105,35 @@ avoid_cache=True: makes random names to allow testing code with global variables
     print(80 * '-')
     print()
     raise
-  header_generator = HeaderGenerator()
-  header_generator.set_SourceContent(source_content)
-  header_content = header_generator.visit(ast_header)
 
   # Run CFFI
   ffibuilder = cffi.FFI()
   ffibuilder.cdef(header_content)
   include_dirs = [ x.replace('-I', '') for x in include_paths ]
-  if 0:
+
+  extra_compile_args = []
+  extra_link_args = []
+  libraries = []
+
+  if en_sanitize_address:
+    # Address sanitizer
     # export LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libasan.so.4
-    extra_compile_args = ['-fsanitize=address']
-    libraries = ['asan']
-  else:
-    extra_compile_args = []
-    libraries = []
-  ffibuilder.set_source(module_name, source_content, include_dirs=include_dirs, extra_compile_args=extra_compile_args, libraries=libraries)
+    extra_compile_args += ['-fsanitize=address']
+    #extra_link_args += ['-fsanitize=address', '-static-libasan']
+    #extra_link_args += ['-fsanitize=address', '-shared-libasan']
+    libraries += ['asan']
+
+  if en_sanitize_undefined:
+    extra_compile_args += ['-fsanitize=undefined', ]
+    extra_link_args += ['-fsanitize=undefined', ]
+
+  if en_code_coverage:
+    # Code coverage
+    extra_compile_args += ['--coverage', ]
+    extra_link_args += ['--coverage', ]
+    libraries += []
+
+  ffibuilder.set_source(module_name, source_content, include_dirs=include_dirs, extra_compile_args=extra_compile_args, libraries=libraries, extra_link_args=extra_link_args)
   ffibuilder.compile()
 
   # Import and return resulting module
@@ -190,5 +212,5 @@ Mocks.ResetMocks()
     for name in dir(Mocks):
       obj = getattr(Mocks, name)
       if isinstance(obj, unittest.mock.Mock):
-        obj.call_count = 0
+        obj.reset_mock()
 
