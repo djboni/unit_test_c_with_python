@@ -146,7 +146,8 @@ en_sanitize_address=True: enables address sanitizer (not working).
 
 def preprocess(source, include_paths, compiler_options):
   try:
-    command = ['gcc', *compiler_options, *include_paths, '-E', '-P', '-']
+    #command = ['gcc', *compiler_options, *include_paths, '-E', '-P', '-']
+    command = ['gcc', ] + compiler_options + include_paths + ['-E', '-P', '-']
     return subprocess.check_output(command, input=source, universal_newlines=True)
   except:
     print()
