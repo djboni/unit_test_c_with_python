@@ -207,6 +207,7 @@ Mocks.CreateMock(ffi, 'read_gpio1', return_value=21)
 # Reset mocks [Useful in setUp()]
 Mocks.ResetMocks()
 """
+  from unittest.mock import call
   def CreateMock(self, ffi, name, *args, **kwargs):
     import unittest.mock
     mock = unittest.mock.Mock(*args, **kwargs)
