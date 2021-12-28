@@ -47,7 +47,8 @@ def load(
     en_sanitize_undefined: bool = False,
     en_sanitize_address: bool = False,
 ):  # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
-    """Load a C file into Python as a module.
+    """
+    Load a C file into Python as a module.
 
     source_files:     ['file1.c', file2.c'] or just 'file1.c'
     include_paths:    ['.', './includes']
@@ -61,13 +62,8 @@ def load(
 
     en_sanitize_undefined=True: enables undefined behavior sanitizer.
 
-    en_sanitize_address=True: enables address sanitizer (not working)."""
-
-    if include_paths is None:
-        include_paths = []
-
-    if compiler_options is None:
-        compiler_options = []
+    en_sanitize_address=True: enables address sanitizer (not working).
+    """
 
     # Avoid caching using random name to module
     if avoid_cache:
@@ -77,15 +73,21 @@ def load(
     if isinstance(source_files, str):
         source_files = [source_files]
 
+    if include_paths is None:
+        include_paths = []
+
+    if compiler_options is None:
+        compiler_options = []
+
     # Prepend -I on include paths
     include_paths = ["-I" + x for x in include_paths]
 
     # Collect source code
-    source_content = []
+    source_content_list: List[str] = []
     for file in source_files:
         with open(file, encoding="utf8") as fp:
-            source_content.append(fp.read())
-    source_content = "\n".join(source_content)
+            source_content_list.append(fp.read())
+    source_content: str = "\n".join(source_content_list)
 
     # Collect include files
     # TODO Remove inclusions inside comments
@@ -263,21 +265,21 @@ class HeaderGenerator(pycparser.c_generator.CGenerator):
 
 
 class FFIMocks:
-    """\
-Define 'extern "Pyton+C"' function as a mock object.
+    """
+    Define 'extern "Pyton+C"' function as a mock object.
 
-from unit_test_c_with_python import load, FFIMocks
-module, ffi = load('gpio.c')
+    from unit_test_c_with_python import load, FFIMocks
+    module, ffi = load('gpio.c')
 
-Mocks = FFIMocks()
+    Mocks = FFIMocks()
 
-# Create mocks
-Mocks.CreateMock(ffi, 'read_gpio0', return_value=42)
-Mocks.CreateMock(ffi, 'read_gpio1', return_value=21)
+    # Create mocks
+    Mocks.CreateMock(ffi, 'read_gpio0', return_value=42)
+    Mocks.CreateMock(ffi, 'read_gpio1', return_value=21)
 
-# Reset mocks [Useful in setUp()]
-Mocks.ResetMocks()
-"""
+    # Reset mocks [Useful in setUp()]
+    Mocks.ResetMocks()
+    """
 
     def CreateMock(self, ffi, name, *args, **kwargs):
         mock = unittest.mock.Mock(*args, **kwargs)

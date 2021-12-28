@@ -1,6 +1,7 @@
 #!/usr/bin/python3
-from load_c import load
-import unittest, unittest.mock
+import unittest
+import unittest.mock
+from load import load
 
 module_name = "pysim_"
 

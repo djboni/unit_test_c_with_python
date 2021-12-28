@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-from load_c import load
 import unittest
+from load import load
 
 module, ffi = load("complex.c", module_name="complex_")
 
