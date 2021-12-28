@@ -2,7 +2,7 @@
 from load_c import load
 import unittest, unittest.mock
 
-module, ffi = load("gpio.c")
+module, ffi = load("gpio.c", module_name="gpio_")
 
 
 class GPIOTest(unittest.TestCase):

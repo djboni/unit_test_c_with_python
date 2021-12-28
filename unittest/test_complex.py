@@ -2,7 +2,7 @@
 from load_c import load
 import unittest
 
-module, ffi = load("complex.c")
+module, ffi = load("complex.c", module_name="complex_")
 
 
 class ComplexTest(unittest.TestCase):

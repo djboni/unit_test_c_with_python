@@ -2,6 +2,10 @@
 
 static int _sum = 0;
 
+void sum_reset(void) {
+    _sum = 0;
+}
+
 int sum(int a) {
     _sum += a;
     return _sum;

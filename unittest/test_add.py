@@ -2,7 +2,7 @@
 from load_c import load
 import unittest
 
-module, ffi = load("add.c")
+module, ffi = load("add.c", module_name="add_")
 
 
 class AddTest(unittest.TestCase):

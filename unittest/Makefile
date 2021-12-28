@@ -1,4 +1,7 @@
-all: add.o sum.o complex.o gpio.o
+all: add.o sum.o complex.o gpio.o test
+
+test:
+	python3 -m unittest
 
 gpio.o: gpio.c gpio.h gpio_lib.h
 	gcc -c -o $@ $<
