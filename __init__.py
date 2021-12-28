@@ -20,8 +20,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import cffi, importlib, pycparser.c_generator
-import re, os, sys, subprocess, uuid
+import subprocess
+import uuid
+import re
+import importlib
+import unittest.mock
+from typing import List, Optional, Union
+
+import cffi
+import pycparser.c_generator
 
 Remove_Unknowns = """\
 #define __attribute__(x)
@@ -30,16 +37,16 @@ Remove_Unknowns = """\
 
 
 def load(
-    source_files,
-    include_paths=[],
-    compiler_options=[],
-    remove_unknowns="",
-    module_name="pysim_",
-    avoid_cache=False,
-    en_code_coverage=False,
-    en_sanitize_undefined=False,
-    en_sanitize_address=False,
-):
+    source_files: Union[List[str], str],
+    include_paths: Optional[List[str]] = None,
+    compiler_options: Optional[List[str]] = None,
+    remove_unknowns: str = "",
+    module_name: str = "pysim_",
+    avoid_cache: bool = False,
+    en_code_coverage: bool = False,
+    en_sanitize_undefined: bool = False,
+    en_sanitize_address: bool = False,
+):  # pylint: disable=too-many-arguments,too-many-locals,too-many-statements
     """Load a C file into Python as a module.
 
     source_files:     ['file1.c', file2.c'] or just 'file1.c'
@@ -55,15 +62,20 @@ def load(
     en_sanitize_undefined=True: enables undefined behavior sanitizer.
 
     en_sanitize_address=True: enables address sanitizer (not working)."""
+
+    if include_paths is None:
+        include_paths = []
+
+    if compiler_options is None:
+        compiler_options = []
+
     # Avoid caching using random name to module
     if avoid_cache:
         module_name += uuid.uuid4().hex + "_"
 
     # Create a list if just one souce file in a string
-    if type(source_files) == str:
-        source_files = [
-            source_files,
-        ]
+    if isinstance(source_files, str):
+        source_files = [source_files]
 
     # Prepend -I on include paths
     include_paths = ["-I" + x for x in include_paths]
@@ -71,7 +83,7 @@ def load(
     # Collect source code
     source_content = []
     for file in source_files:
-        with open(file) as fp:
+        with open(file, encoding="utf8") as fp:
             source_content.append(fp.read())
     source_content = "\n".join(source_content)
 
@@ -80,7 +92,9 @@ def load(
     header_content = "".join(
         x[0]
         for x in re.findall(
-            r"(\s*\#\s*(include\s|define\s|undef\s|if(n?def)?\s|else|endif|error|warning)[^\n\r\\]*((\\\n|\\\r|\\\n\r|\\\r\n)[^\n\r\\]*)*)",
+            r"(\s*\#\s*("
+            r"include\s|define\s|undef\s|if(n?def)?\s|else|endif|error|warning"
+            r")[^\n\r\\]*((\\\n|\\\r|\\\n\r|\\\r\n)[^\n\r\\]*)*)",
             source_content,
         )
     )
@@ -206,42 +220,44 @@ class HeaderGenerator(pycparser.c_generator.CGenerator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.functions = set()
+        self.source_content = ""
 
     def set_SourceContent(self, source_content):
         self.source_content = source_content
 
     def visit_Decl(self, n, *args, **kwargs):
-        import os
-
         result = super().visit_Decl(n, *args, **kwargs)
+
         if isinstance(n.type, pycparser.c_ast.FuncDecl):
             # Is a function declaration
             if n.name in self.functions:
                 # Is already in functions
-                return result
+                pass
             elif (
                 re.search(
                     (
                         re.escape(result)
                         .replace("\\*", "\\*\\s*")
                         .replace("\\ ", "\\s*")
-                        + "\\s*\{"
+                        + "\\s*\\{"
                     ),
                     self.source_content,
                 )
-                != None
+                is not None
             ):
                 # Is declared in source content
-                return result
+                pass
             else:
                 # Not in functions, not in source
                 self.functions.add(n.name)
-                return 'extern "Python+C" ' + result
+                result = 'extern "Python+C" ' + result
         else:
             # Not a function declaration
-            return result
+            pass
 
-    def visit_FuncDef(self, n, *args, **kwargs):
+        return result
+
+    def visit_FuncDef(self, n):
         self.functions.add(n.decl.name)
         return ""
 
@@ -263,18 +279,12 @@ Mocks.CreateMock(ffi, 'read_gpio1', return_value=21)
 Mocks.ResetMocks()
 """
 
-    from unittest.mock import call
-
     def CreateMock(self, ffi, name, *args, **kwargs):
-        import unittest.mock
-
         mock = unittest.mock.Mock(*args, **kwargs)
         setattr(self, name, mock)
         ffi.def_extern(name)(mock)
 
     def ResetMocks(self):
-        import unittest.mock
-
         for name in dir(self):
             obj = getattr(self, name)
             if isinstance(obj, unittest.mock.Mock):
