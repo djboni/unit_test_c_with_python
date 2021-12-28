@@ -1,1 +1,1 @@
-../load_c.py
+../__init__.py

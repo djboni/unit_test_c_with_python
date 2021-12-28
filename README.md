@@ -9,7 +9,7 @@ The source code and the headers used within them are processed with CFFI, compil
 ```
              \
 source/*.c   |
-             |o => CFFI => GCC => Python 
+             |o => CFFI => GCC => Python
 includes/*.h |
              /
 ```
@@ -195,15 +195,15 @@ class GPIOTest(unittest.TestCase):
       return 42
 
     self.assertEqual(module.read_gpio(0), 42)
-  
+
   def test_read_gpio1(self):
-  
+
     # Mock read_gpio1() to return 21
     read_gpio1 = unittest.mock.MagicMock(return_value=21)
     ffi.def_extern('read_gpio1')(read_gpio1)
-    
+
     self.assertEqual(module.read_gpio(1), 21)
-    
+
     # Check if mock was called once with no parameters
     read_gpio1.assert_called_once_with()
 
@@ -246,4 +246,3 @@ Other useful presentations:
 
 * Is there a way to use Gcov to test statement or branch coverage when testing C code with Python?
 * Is there a way to access macros from the files?
-

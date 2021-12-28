@@ -109,5 +109,3 @@ gcovr "${GCOVR_ARGS[@]}" | while read Line; do
     echo
   fi
 done
-
-

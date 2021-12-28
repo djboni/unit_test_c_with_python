@@ -1,4 +1,4 @@
 typedef struct {
-  float real;
-  float imaginary;
+    float real;
+    float imaginary;
 } complex;

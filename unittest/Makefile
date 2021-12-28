@@ -11,4 +11,3 @@ complex.o: complex.c complex.h types.h
 
 clean:
 	rm -fr *.o *.so *_.c *.pyc __pycache__/
-
