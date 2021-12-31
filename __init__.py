@@ -102,10 +102,12 @@ def load(
     )
 
     # Preprocess include files
+    header_content = _RemoveStandardIncludes(header_content)
     header_content = Remove_Unknowns + remove_unknowns + header_content
     header_content = preprocess(header_content, include_paths, compiler_options)
 
     # Preprocess source code
+    source_content = _RemoveStandardIncludes(source_content)
     source_content = Remove_Unknowns + remove_unknowns + source_content
     source_content = preprocess(source_content, include_paths, compiler_options)
 
@@ -291,3 +293,7 @@ class FFIMocks:
             obj = getattr(self, name)
             if isinstance(obj, unittest.mock.Mock):
                 obj.reset_mock()
+
+
+def _RemoveStandardIncludes(source):
+    return re.sub(r"#\s*include\s*<.*?>", "", source)
