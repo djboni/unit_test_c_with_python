@@ -241,6 +241,8 @@ class HeaderGenerator(pycparser.c_generator.CGenerator):
                 re.search(
                     (
                         re.escape(result)
+                        .replace("\\(", "\\(\\s*")
+                        .replace("\\)", "\\s*\\)")
                         .replace("\\*", "\\*\\s*")
                         .replace("\\ ", "\\s*")
                         + "\\s*\\{"
