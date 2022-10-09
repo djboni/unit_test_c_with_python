@@ -1,4 +1,4 @@
-# Errors and problems
+# Troubleshooting
 
 ## Where is `main()`?
 
@@ -8,8 +8,8 @@ The function `main()` is renamed to `mpmain()`, so it does not conflict with Pyt
 
 To reset global variables you have two options:
 
-* Create reset function (in C or in Python) and call it in `setUp()`.
-* Reload module with parameter `avoid_cache=True` in `setUp()`. This will recompile the module with a random name and avoid Python module caching.
+- Create reset function (in C or in Python) and call it in `setUp()`.
+- Reload module with parameter `avoid_cache=True` in `setUp()`. This will recompile the module with a random name and avoid Python module caching.
 
 There may be other options, however.
 
