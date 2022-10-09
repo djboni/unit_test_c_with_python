@@ -30,9 +30,7 @@ mypy:
 	$(MYPY) --version
 
 	@echo ">>> Type hints check..."
-	$(MYPYPATH) $(MYPY) __init__.py --ignore-missing-imports
-	$(MYPYPATH) $(MYPY) unittest/*.py --ignore-missing-imports
-	$(MYPYPATH) $(MYPY) integrtest/*.py --ignore-missing-imports
+	$(MYPYPATH) $(MYPY) load.py --ignore-missing-imports
 
 pylint:
 	@echo ">>> Versions..."
@@ -40,4 +38,4 @@ pylint:
 	$(PYLINT) --version
 
 	@echo ">>> Linting..."
-	$(PYTHONPATH) $(PYLINT) $(PYLINT_OPTS) $$(find . -name '*.py')
+	$(PYTHONPATH) $(PYLINT) $(PYLINT_OPTS) load.py
