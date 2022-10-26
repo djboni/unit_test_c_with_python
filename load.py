@@ -218,7 +218,25 @@ class HeaderGenerator(pycparser.c_generator.CGenerator):
     def visit_Decl(self, n, *args, **kwargs):
         result = super().visit_Decl(n, *args, **kwargs)
 
-        if isinstance(n.type, pycparser.c_ast.FuncDecl):
+        if isinstance(n.type, pycparser.c_ast.ArrayDecl):
+            array_size = result[result.find("[")+1:result.find("]")]
+            
+            # cffi doesn't work with array sizes that are not a number. like "int test[ 1 + 2]"
+            # So eval the number
+            if( not array_size.isnumeric() ):
+                
+                # remove possible casts like "int test[ (uint8_t)1 + 2]"
+                no_cast_array_size = re.sub("\\(\\s*[u]int[0-9]*_t\\s*\\)", " ", array_size)
+                try:
+                    number = round(eval(no_cast_array_size))
+
+                    # remove the size
+                    result = result.replace(array_size, str(number))
+                except:
+                    print("can't parse: " + result)
+                    pass
+                
+        elif isinstance(n.type, pycparser.c_ast.FuncDecl):
             # Is a function declaration
             if n.name in self.functions:
                 # Is already in functions
