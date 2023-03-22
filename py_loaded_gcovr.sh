@@ -27,6 +27,7 @@ while [ $# -ne 0 ]; do
 done
 
 NUM=0
+TOTAL_UNCOVERD_LINES=0
 
 gcovr "${GCOVR_ARGS[@]}" | while read Line; do
   # Get file name
@@ -36,6 +37,7 @@ gcovr "${GCOVR_ARGS[@]}" | while read Line; do
   [ ! -f "$File" ] && continue
 
   # Find start and end of actual code, not CFFI prefix and postfix
+  # the cffi is add a /****(X60)/ on pre and post fix 
   Lines=$(grep -nE '/\*{60}/' "$File" | cut -f1 -d':')
   Start=$(echo $Lines | cut -f1 -d' ')
   End=$(echo $Lines | cut -f2 -d' ')
@@ -95,17 +97,22 @@ gcovr "${GCOVR_ARGS[@]}" | while read Line; do
       fi
     fi
 
-    if [ ! -z $NO_CODE ]; then
-      if [ $A -eq $B ]; then
+    # print a single digit for a single line or a range
+    if [ $A -eq $B ]; then
+      TOTAL_UNCOVERD_LINES=$((TOTAL_UNCOVERD_LINES + 1))
+      if [ ! -z $NO_CODE ]; then
         echo -n "$A,"
-      else
+      fi
+    else
+      TOTAL_UNCOVERD_LINES=$((TOTAL_UNCOVERD_LINES + B - A + 1))
+      if [ ! -z $NO_CODE ]; then
         echo -n "$A-$B,"
       fi
-
     fi
   done
 
-  if [ ! -z $NO_CODE ]; then
-    echo
-  fi
+  TOTAL_LINES=$((End - Start))
+  echo -ne "\nTotal lines: $TOTAL_LINES"
+  echo -ne "\nUncoverd lines: $TOTAL_UNCOVERD_LINES"
+  echo -ne "\nPercentage: $(( 100-(TOTAL_UNCOVERD_LINES*100)/TOTAL_LINES))%"
 done
